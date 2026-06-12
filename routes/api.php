@@ -16,8 +16,15 @@ Route::get('/roeurn', function () {
 });
 
 // API Products
-Route::apiResource('products', ProductController::class)->only(['index']);
+// Route::apiResource('products', ProductController::class)->only(['index']);
 
 
 // API Categories 
-Route::apiResource('categories', CategoryController::class)->only(['index','store','show','update','destroy']);
+Route::apiResource('categories', CategoryController::class)
+    ->names([
+        'index' => 'api.categories.index',
+        'store' => 'api.categories.store',
+        'show' => 'api.categories.show',
+        'update' => 'api.categories.update',
+        'destroy' => 'api.categories.destroy',
+    ]);

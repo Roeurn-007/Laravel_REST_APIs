@@ -10,4 +10,5 @@ class Category extends Model
         'name',
         'dec'
     ];
+    protected $casts = ['is_active'=>'boolean'];
 }

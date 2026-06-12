@@ -5,121 +5,107 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * GET ALL CATEGORIES
      */
     public function index()
     {
         $categories = Category::all();
+
         return response()->json([
-            'status' => true,
-            'message' => 'Get all category successfully',
-            'data' => $categories,
-        ]);
+            'success' => true,
+            'data' => $categories
+        ], Response::HTTP_OK);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * CREATE CATEGORY
      */
     public function store(Request $request)
     {
-        // validation
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'dec' => 'required|string|max:255',
+            'dec' => 'required|string',
+            'is_active' => 'sometimes|boolean',
         ]);
 
-        // create category
-        $category = Category::create([
-            'name' => $request->name,
-            'dec' => $request->dec,
-        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $category = Category::create($validator->validated());
 
         return response()->json([
-            'status' => true,
+            'success' => true,
             'message' => 'Category created successfully',
             'data' => $category
-        ], 201);
+        ], Response::HTTP_CREATED);
     }
 
     /**
-     * Display the specified resource.
+     * GET SINGLE CATEGORY
      */
     public function show(string $id)
     {
-        $category = Category::find($id);
-
-        if (!$category) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Category not found',
-                'data' => null
-            ], 404);
-        }
+        $category = Category::findOrFail($id);
 
         return response()->json([
-            'status' => true,
-            'message' => 'Get category successfully',
+            'success' => true,
             'data' => $category
-        ]);
+        ], Response::HTTP_OK);
     }
 
     /**
-     * Update the specified resource in storage.
+     * UPDATE CATEGORY
      */
     public function update(Request $request, string $id)
     {
-        $category = Category::find($id);
+        $category = Category::findOrFail($id);
 
-        if (!$category) {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'dec' => 'required|string',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
-                'status' => false,
-                'message' => 'Category not found',
-                'data' => null
-            ], 404);
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'dec' => 'required|string|max:255',
-        ]);
-
-        $category->update([
-            'name' => $request->name,
-            'dec' => $request->dec,
-        ]);
+        $category->update($validator->validated());
 
         return response()->json([
-            'status' => true,
+            'success' => true,
             'message' => 'Category updated successfully',
             'data' => $category
-        ]);
+        ], Response::HTTP_OK);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * DELETE CATEGORY
      */
     public function destroy(string $id)
     {
-        $category = Category::find($id);
-
-        if (!$category) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Category not found',
-                'data' => null
-            ], 404);
-        }
+        $category = Category::findOrFail($id);
 
         $category->delete();
 
         return response()->json([
-            'status' => true,
-            'message' => 'Category deleted successfully',
-            'data' => null
-        ]);
+            'success' => true,
+            'message' => 'Category deleted successfully'
+        ], Response::HTTP_OK);
     }
 }
