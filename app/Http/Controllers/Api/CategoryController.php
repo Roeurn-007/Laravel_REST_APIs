@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
     /**
-     * GET ALL CATEGORIES
+     * Display a listing of the resource.
      */
     public function index()
     {
@@ -19,15 +19,17 @@ class CategoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $categories
+            'message' => 'Get all categories successfully',
+            'data' => $categories,
         ], Response::HTTP_OK);
     }
 
     /**
-     * CREATE CATEGORY
+     * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        // validation (teacher style added)
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'dec' => 'required|string',
@@ -38,7 +40,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -47,30 +49,47 @@ class CategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Category created successfully',
-            'data' => $category
+            'data' => $category,
         ], Response::HTTP_CREATED);
     }
 
     /**
-     * GET SINGLE CATEGORY
+     * Display the specified resource.
      */
     public function show(string $id)
     {
-        $category = Category::findOrFail($id);
+        // keep YOUR style (manual check + custom message)
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $category
+            'message' => 'Get category successfully',
+            'data' => $category,
         ], Response::HTTP_OK);
     }
 
     /**
-     * UPDATE CATEGORY
+     * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        $category = Category::findOrFail($id);
+        $category = Category::find($id);
 
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // teacher validation added
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'dec' => 'required|string',
@@ -81,7 +100,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -90,22 +109,29 @@ class CategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Category updated successfully',
-            'data' => $category
+            'data' => $category,
         ], Response::HTTP_OK);
     }
 
     /**
-     * DELETE CATEGORY
+     * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        $category = Category::findOrFail($id);
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         $category->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Category deleted successfully'
+            'message' => 'Category deleted successfully',
         ], Response::HTTP_OK);
     }
 }
