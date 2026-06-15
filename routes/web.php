@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\StudentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,7 +20,7 @@ Route::get('/users', [UserController::class, 'index'])->name('users.index');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
 Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
-Route::get('/products/{id}', [ProductController::class, 'edit'])->name('products.edit');    
+Route::get('/products/{id}', [ProductController::class, 'edit'])->name('products.edit');
 Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
 Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
 
@@ -44,9 +45,18 @@ Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->name('
 
 
 // Movie routes 
-Route::get('/movies',[MovieController::class, 'index'])->name('movies.index');
-Route::get('/movies/create',[MovieController::class, 'create'])->name('movies.create');
-Route::post('/movies/store',[MovieController::class, 'store'])->name('movies.store');
-Route::get('/movies/{id}',[MovieController::class, 'edit'])->name('movies.edit');
-Route::put('/movies/{id}',[MovieController::class, 'update'])->name('movies.update');
-Route::delete('/movies/{id}',[MovieController::class, 'destroy'])->name('movies.destroy');
+Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
+Route::get('/movies/create', [MovieController::class, 'create'])->name('movies.create');
+Route::post('/movies/store', [MovieController::class, 'store'])->name('movies.store');
+Route::get('/movies/{id}', [MovieController::class, 'edit'])->name('movies.edit');
+Route::put('/movies/{id}', [MovieController::class, 'update'])->name('movies.update');
+Route::delete('/movies/{id}', [MovieController::class, 'destroy'])->name('movies.destroy');
+
+
+// Student routes 
+Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
+Route::post('/students/store', [StudentController::class, 'store'])->name('students.store');
+Route::get('/students{id}', [StudentController::class, 'edit'])->name('students.edit');
+Route::put('/students{id}', [StudentController::class, 'update'])->name('students.update');
+Route::delete('/students{id}', [StudentController::class, 'destroy'])->name('students.destroy');

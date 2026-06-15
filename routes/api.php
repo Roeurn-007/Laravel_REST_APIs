@@ -15,10 +15,6 @@ Route::get('/roeurn', function () {
     return 'Roeurn is smartest';
 });
 
-// API Products
-// Route::apiResource('products', ProductController::class)->only(['index']);
-
-
 // API Categories 
 Route::apiResource('categories', CategoryController::class)
     ->names([
@@ -27,4 +23,15 @@ Route::apiResource('categories', CategoryController::class)
         'show' => 'api.categories.show',
         'update' => 'api.categories.update',
         'destroy' => 'api.categories.destroy',
+    ]);
+
+
+// API Products 
+Route::apiResource('products', ProductController::class)
+    ->names([
+        'index' => 'api.products.index',
+        'store' => 'api.products.store',
+        'show' => 'api.products.show',
+        'update' => 'api.products.update',
+        'destroy' => 'api.products.destroy',
     ]);

@@ -15,6 +15,7 @@
                 <a class="nav-link" href="{{ route('movies.index') }}">Movies</a>
                 <a class="nav-link" href="{{ route('categories.index') }}">Categories</a>
                 <a class="nav-link" href="{{ route('customers.index') }}">Customers</a>
+                <a class="nav-link" href="{{ route('students.index') }}">Students</a>
                 <a class="nav-link" href="#">Contact</a>
             </div>
         </div>

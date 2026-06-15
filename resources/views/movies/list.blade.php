@@ -28,7 +28,7 @@
                         <td>{{ $movie->date }}</td>
                         <td>{{ $movie->price }}{{ "$" }}</td>
                         <td>{{ $movie->author }}</td>
-                        <td>{{ $movie->description }}</td>
+                        <td>{{ Str::limit($movie->description, 60,) }}</td>
                         <td>
                             <!-- Button trigger modal -->
                             <a href="" class="btn btn-sm btn-primary" data-bs-toggle="modal"
