@@ -8,21 +8,34 @@ use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. row sql
-        // $categories = DB::select('SELECT * FROM categories');
+        $query = Category::withCount('products');
 
-        // 2. query  builder 
-        // $categories = DB::table('categories')->get();
+        // Search by name
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
 
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
 
-        // 3. Eloquent ORM 
-        // use all()
-        $categories = Category::orderBy('id','desc')->get();
+        // Filter by product count
+        if ($request->filled('products_filter')) {
+            switch ($request->products_filter) {
+                case 'with_products':
+                    $query->whereHas('products');
+                    break;
+                case 'without_products':
+                    $query->whereDoesntHave('products');
+                    break;
+            }
+        }
 
+        $categories = $query->orderBy('id', 'desc')->get();
 
-        // dd($categories);
         return view('categories.list', compact('categories'));
     }
 
@@ -31,43 +44,49 @@ class CategoryController extends Controller
         return view('categories.form');
     }
 
-    public function store()
+    public function store(Request $request)
     {
-        Category::create([
-            'name' => request()->name,
-            'dec' => request()->dec,
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'dec' => 'required|string',
+            'is_active' => 'nullable|boolean',
         ]);
-        return redirect('categories');
+
+        $data['is_active'] = $request->boolean('is_active');
+
+        Category::create($data);
+
+        return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
 
     public function edit($id)
     {
         // dd($id);
-        $category = Category::find($id);
+        $category = Category::findOrFail($id);
 
         return view('categories.edit', compact('category'));
     }
 
-    public function update($id)
+    public function update(Request $request, $id)
     {
-        // dd(request()->all());
-        
-        $category = Category::find($id);
+        $category = Category::findOrFail($id);
 
-        // make sure update doesn't has "d"
-        $category->update(
-            [
-                'name' => request()->name,
-                'dec' => request()->dec,
-            ]
-        );
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'dec' => 'required|string',
+            'is_active' => 'nullable|boolean',
+        ]);
 
-        return redirect('/categories');
+        $data['is_active'] = $request->boolean('is_active');
+
+        $category->update($data);
+
+        return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
     }
 
     public function destroy($id){
         Category::destroy($id);
-        return redirect('/categories');
+        return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
 
     }
 }

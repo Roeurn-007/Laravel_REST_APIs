@@ -1,59 +1,191 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# E-Commerce Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A robust Laravel-based REST API for a full-stack e-commerce system with admin panel, user authentication, and comprehensive e-commerce features.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Admin Panel (Blade Templates)
+- **Dashboard** - Statistics, revenue analytics, order analytics, category sales, customer growth, top products, recent orders, activities, low stock alerts
+- **Category Management** - Full CRUD operations (Create, Read, Update, Delete)
+- **Product Management** - Full CRUD with image upload support
+- **Order Management** - View orders, update order status
+- **User Management** - View and manage registered users
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Public API Endpoints (No Authentication Required)
+- `GET /api/products` - List all products with filtering, sorting, and pagination
+- `GET /api/products/{id}` - Get product details
+- `GET /api/products/{product}/reviews` - Get product reviews
+- `GET /api/categories` - List all categories
+- `GET /api/categories/{id}` - Get category details
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Protected API Endpoints (Laravel Sanctum Authentication)
+- **Authentication**
+  - `POST /api/register` - User registration
+  - `POST /api/login` - User login
+  - `POST /api/logout` - User logout
+  - `GET /api/profile` - Get user profile
 
-## Learning Laravel
+- **Wishlist**
+  - `GET /api/wishlist` - View wishlist
+  - `POST /api/wishlist` - Add product to wishlist
+  - `DELETE /api/wishlist/{product}` - Remove from wishlist
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Cart**
+  - `GET /api/cart` - View cart with totals
+  - `POST /api/cart` - Add product to cart
+  - `PUT /api/cart/{cartItem}` - Update cart item quantity
+  - `DELETE /api/cart/{cartItem}` - Remove cart item
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Checkout & Orders**
+  - `POST /api/checkout` - Checkout cart and create order
+  - `GET /api/orders` - View order history (paginated)
+  - `GET /api/orders/{order}` - View order details
 
-## Laravel Sponsors
+- **Profile Management**
+  - `POST/PUT/PATCH /api/profile` - Update profile (name, email, avatar)
+  - `PUT /api/profile/password` - Change password
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **Reviews**
+  - `POST /api/products/{product}/reviews` - Write a review (rated 1-5)
 
-### Premium Partners
+## Tech Stack
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- **Framework**: Laravel 10+
+- **Authentication**: Laravel Sanctum (Token-based API authentication)
+- **Database**: MySQL/PostgreSQL/SQLite
+- **Template Engine**: Blade (for admin panel)
+- **API Resources**: JSON responses with proper HTTP status codes
 
-## Contributing
+## Requirements
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP 8.1+
+- Composer
+- Node.js & npm (for asset compilation)
+- Database (MySQL/PostgreSQL/SQLite)
 
-## Code of Conduct
+## Installation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Clone the repository
+2. Install PHP dependencies:
+   ```bash
+   cd backend
+   composer install
+   ```
 
-## Security Vulnerabilities
+3. Copy `.env.example` to `.env` and configure your database:
+   ```bash
+   cp .env.example .env
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4. Generate application key:
+   ```bash
+   php artisan key:generate
+   ```
+
+5. Run database migrations:
+   ```bash
+   php artisan migrate
+   ```
+
+6. (Optional) Seed the database with sample data:
+   ```bash
+   php artisan db:seed
+   ```
+
+7. Install Laravel Sanctum:
+   ```bash
+   php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+   php artisan migrate
+   ```
+
+8. Create storage link for product images:
+   ```bash
+   php artisan storage:link
+   ```
+
+9. Start the development server:
+   ```bash
+   php artisan serve
+   ```
+
+The API will be available at `http://localhost:8000/api`
+
+## API Usage
+
+### Authentication Flow
+
+1. **Register**:
+   ```bash
+   POST /api/register
+   {
+     "name": "John Doe",
+     "email": "john@example.com",
+     "password": "password123",
+     "password_confirmation": "password123"
+   }
+   ```
+
+2. **Login**:
+   ```bash
+   POST /api/login
+   {
+     "email": "john@example.com",
+     "password": "password123"
+   }
+   ```
+
+3. **Use Token**: Include the token in subsequent requests:
+   ```
+   Authorization: Bearer {token}
+   ```
+
+### Example API Calls
+
+**Get Products:**
+```bash
+GET /api/products?search=headphones&category_id=1&sort=price&direction=asc&per_page=12
+```
+
+**Add to Cart:**
+```bash
+POST /api/cart
+Authorization: Bearer {token}
+
+{
+  "product_id": 1,
+  "quantity": 2
+}
+```
+
+**Checkout:**
+```bash
+POST /api/checkout
+Authorization: Bearer {token}
+
+{
+  "shipping_address": "123 Main St, City, Country",
+  "coupon_code": "OFFER25"
+}
+```
+
+## Database Schema
+
+### Main Tables
+- **users** - User accounts (customers & admins)
+- **categories** - Product categories
+- **products** - Product information with images and stock
+- **carts** / **cart_items** - Shopping cart
+- **orders** / **order_items** - Order history
+- **wishlists** - User wishlists
+- **reviews** - Product reviews and ratings
+
+## Admin Credentials
+
+After seeding, you can access the admin panel at:
+- URL: `http://localhost:8000/admin/dashboard`
+- Email: `admin@example.com`
+- Password: `password`
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-source and available under the MIT License.

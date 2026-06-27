@@ -1,23 +1,54 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-    <div class="container">
-        <a class="navbar-brand fw-bold text-warning" href="/">
-            First Laravel 2026C
+<aside class="admin-sidebar">
+    <a class="sidebar-brand" href="{{ route('admin.dashboard') }}">
+        <span class="brand-mark">
+            <i class="fa-solid fa-shop"></i>
+        </span>
+        <span>
+            <span class="d-block fw-bold">Ecommerce</span>
+            <span class="d-block small text-white-50">Admin Panel</span>
+        </span>
+    </a>
+
+    <nav class="sidebar-nav">
+        <a class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+            href="{{ route('admin.dashboard') }}">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard</span>
         </a>
+        <a class="sidebar-link {{ request()->routeIs('products.*') ? 'active' : '' }}"
+            href="{{ route('products.index') }}">
+            <i class="fa-solid fa-box"></i>
+            <span>Products</span>
+        </a>
+        <a class="sidebar-link {{ request()->routeIs('categories.*') ? 'active' : '' }}"
+            href="{{ route('categories.index') }}">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Categories</span>
+        </a>
+        <a class="sidebar-link {{ request()->routeIs('orders.*') ? 'active' : '' }}"
+            href="{{ route('orders.index') }}">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Orders</span>
+        </a>
+        <a class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
+            href="{{ route('users.index') }}">
+            <i class="fa-solid fa-users"></i>
+            <span>Users</span>
+        </a>
+    </nav>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link active" href="/">Home</a>
-                <a class="nav-link" href="{{ route('products.index') }}">Products</a>
-                <a class="nav-link" href="{{ route('movies.index') }}">Movies</a>
-                <a class="nav-link" href="{{ route('categories.index') }}">Categories</a>
-                <a class="nav-link" href="{{ route('customers.index') }}">Customers</a>
-                <a class="nav-link" href="{{ route('students.index') }}">Students</a>
-                <a class="nav-link" href="#">Contact</a>
+    <div class="sidebar-footer">
+        <a href="{{ route('profile') }}" class="sidebar-user d-flex align-items-center gap-2 text-decoration-none text-light">
+            <span class="brand-mark user-avatar"
+                @if (auth()->user()->image_url) style="background-image: url('{{ auth()->user()->image_url }}'); background-size: cover; background-position: center;" @endif>
+                @unless (auth()->user()->image_url)
+                    <i class="fa-solid fa-user-shield"></i>
+                @endunless
+            </span>
+            <div class="text-truncate">
+                <div class="fw-semibold text-truncate">{{ auth()->user()->name }}</div>
+                <div class="small text-white-50">Administrator</div>
             </div>
-        </div>
+        </a>
     </div>
-</nav>
+</aside>

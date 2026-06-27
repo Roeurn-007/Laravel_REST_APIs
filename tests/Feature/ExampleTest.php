@@ -14,6 +14,12 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('login.form'));
+    }
+
+    public function test_auth_pages_render_successfully(): void
+    {
+        $this->get(route('login.form'))->assertOk();
+        $this->get(route('register.form'))->assertOk();
     }
 }

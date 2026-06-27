@@ -2,33 +2,81 @@
 @section('title')
     <title>Add New Category</title>
 @endsection
+@section('page-heading', 'Add Category')
 @section('content')
-    <div class="container mt-3">
-        <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-md-6">
-                <h1>Add New Category</h1>
-                <form action="{{ route('categories.store') }}" method="POST">
-                    {{-- need to use @csrf for curd --}}
-                    @csrf
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name"
-                            placeholder="Enter your name">
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-floating">
-                            <textarea class="form-control" id="dec" name="dec"></textarea>
-                            <label for="dec">Enter description</label>
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card stat-card">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h2 class="h4 mb-1 admin-page-title">
+                        <i class="fa-solid fa-layer-group me-2"></i>Add New Category
+                    </h2>
+                    <p class="admin-page-subtitle mb-0 small">Create a new category to organize your products.</p>
+                </div>
+
+                <div class="card-body p-4">
+                    @if ($errors->any())
+                        <div class="alert alert-danger border-0 rounded-3">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-circle-exclamation mt-1"></i>
+                                <ul class="mb-0 ps-2">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Create Category</button>
-                        <a href="{{ route('categories.index') }}" class="btn btn-secondary">Cancel</a>
-                    </div>
-                </form>
+                    @endif
+
+                    <form action="{{ route('categories.store') }}" method="POST" novalidate>
+                        @csrf
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
+                                <i class="fa-solid fa-tag me-1 text-muted"></i>Category Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                class="form-control form-control-lg @error('name') is-invalid @enderror"
+                                id="name" name="name" value="{{ old('name') }}"
+                                placeholder="e.g. Electronics, Clothing, Books" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dec" class="form-label fw-semibold">
+                                <i class="fa-solid fa-align-left me-1 text-muted"></i>Description <span class="text-danger">*</span>
+                            </label>
+                            <textarea
+                                class="form-control form-control-lg @error('dec') is-invalid @enderror"
+                                id="dec" name="dec" rows="5"
+                                placeholder="Write a short description for this category..." required>{{ old('dec') }}</textarea>
+                            @error('dec')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked>
+                            <label class="form-check-label fw-semibold" for="is_active">
+                                <i class="fa-solid fa-circle-check me-1 text-success"></i>Active (visible to customers)
+                            </label>
+                        </div>
+
+                        <hr class="border-secondary opacity-25">
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end">
+                            <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-xmark me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>Create Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="col-md-3"></div>
         </div>
     </div>
 @endsection

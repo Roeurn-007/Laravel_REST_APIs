@@ -3,135 +3,81 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\CategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Validator;
+use App\Support\ApiResponse;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $categories = Category::latest('id','desc')->get();
+    use ApiResponse;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Get all categories successfully',
-            'data' => $categories,
-        ], Response::HTTP_OK);
+    public function index(Request $request)
+    {
+        $sort = in_array($request->query('sort'), ['id', 'name', 'created_at'], true)
+            ? $request->query('sort')
+            : 'id';
+        $direction = $request->query('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage = min((int) $request->query('per_page', 12), 50);
+
+        $categories = Category::query()
+            ->select(['id', 'name', 'dec', 'is_active', 'created_at'])
+            ->withCount('products')
+            ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%' . $request->query('search') . '%'))
+            ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')))
+            ->orderBy($sort, $direction)
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return $this->resourceResponse('Categories retrieved successfully', CategoryResource::collection($categories));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
-        // validation (teacher style added)
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'dec' => 'required|string',
-            'is_active' => 'sometimes|boolean',
-        ]);
+        $data = $request->validated();
+        $data['is_active'] = $request->boolean('is_active', true);
+        $category = Category::create($data);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $category = Category::create($validator->validated());
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category created successfully',
-            'data' => $category,
-        ], Response::HTTP_CREATED);
+        return $this->resourceResponse('Category created successfully', new CategoryResource($category), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        // keep YOUR style (manual check + custom message)
-        $category = Category::find($id);
+        $category = Category::withCount('products')->find($id);
 
         if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], Response::HTTP_NOT_FOUND);
+            return $this->errorResponse('Category not found', [], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Get category successfully',
-            'data' => $category,
-        ], Response::HTTP_OK);
+        return $this->resourceResponse('Category retrieved successfully', new CategoryResource($category));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(CategoryRequest $request, string $id)
     {
         $category = Category::find($id);
 
         if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], Response::HTTP_NOT_FOUND);
+            return $this->errorResponse('Category not found', [], 404);
         }
 
-        // teacher validation added
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'dec' => 'required|string',
-            'is_active' => 'sometimes|boolean',
-        ]);
+        $data = $request->validated();
+        $data['is_active'] = $request->boolean('is_active');
+        $category->update($data);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $category->update($validator->validated());
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category updated successfully',
-            'data' => $category,
-        ], Response::HTTP_OK);
+        return $this->resourceResponse('Category updated successfully', new CategoryResource($category->fresh()));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $category = Category::find($id);
 
         if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], Response::HTTP_NOT_FOUND);
+            return $this->errorResponse('Category not found', [], 404);
         }
 
         $category->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Category deleted successfully',
-        ], Response::HTTP_OK);
+        return $this->successResponse('Category deleted successfully');
     }
 }

@@ -3,177 +3,109 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-    /**
-     * GET /api/products
-     */
-    public function index()
-    {
-        $products = Product::with('category')->get();
+    use ApiResponse;
 
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+    public function index(Request $request)
+    {
+        $sort = in_array($request->query('sort'), ['id', 'name', 'price', 'stock', 'created_at'], true)
+            ? $request->query('sort')
+            : 'id';
+        $direction = $request->query('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage = min((int) $request->query('per_page', 12), 50);
+
+        $products = Product::query()
+            ->select(['id', 'category_id', 'name', 'description', 'image', 'price', 'stock', 'is_active', 'created_at'])
+            ->with('category:id,name,dec,is_active,created_at')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->query('search');
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($query) => $query->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->query('category_id')))
+            ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')))
+            ->orderBy($sort, $direction)
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return $this->resourceResponse('Products retrieved successfully', ProductResource::collection($products));
     }
 
-    /**
-     * POST /api/products
-     */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'is_active' => 'sometimes|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // upload image
-        $imagePath = null;
+        $data = $request->validated();
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
+        $data['is_active'] = $request->boolean('is_active', true);
 
-        $product = Product::create([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'image' => $imagePath,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+        $product = Product::create($data)->load('category:id,name,dec,is_active,created_at');
 
-        return response()->json([
-            'success' => true,
-            'data' => $product->load('category')
-        ], 201);
+        return $this->resourceResponse('Product created successfully', new ProductResource($product), 201);
     }
 
-    /**
-     * GET /api/products/{id}
-     */
     public function show(string $id)
     {
-        $product = Product::with('category')->find($id);
+        $product = Product::with('category:id,name,dec,is_active,created_at')->find($id);
 
         if (!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Product not found'
-            ], 404);
+            return $this->errorResponse('Product not found', [], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $product
-        ]);
+        return $this->resourceResponse('Product retrieved successfully', new ProductResource($product));
     }
 
-    /**
-     * PUT /api/products/{id}
-     */
-    public function update(Request $request, string $id)
+    public function update(ProductRequest $request, string $id)
     {
         $product = Product::find($id);
 
         if (!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Product not found'
-            ], 404);
+            return $this->errorResponse('Product not found', [], 404);
         }
 
-        $validator = Validator::make($request->all(), [
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'is_active' => 'sometimes|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // update image
-        $imagePath = $product->image;
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
-
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
 
-            $imagePath = $request->file('image')->store('products', 'public');
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-        $product->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'image' => $imagePath,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'is_active' => $request->boolean('is_active'),
-        ]);
-        
-        $product->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $data['is_active'] = $request->boolean('is_active');
+        $product->update($data);
 
-        return response()->json([
-            'success' => true,
-            'data' => $product->fresh()->load('category')
-        ]);
+        return $this->resourceResponse(
+            'Product updated successfully',
+            new ProductResource($product->fresh()->load('category:id,name,dec,is_active,created_at'))
+        );
     }
 
-    /**
-     * DELETE /api/products/{id}
-     */
     public function destroy(string $id)
     {
         $product = Product::find($id);
 
         if (!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Product not found'
-            ], 404);
+            return $this->errorResponse('Product not found', [], 404);
         }
 
-        // delete image file
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
 
         $product->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Product deleted successfully'
-        ]);
+        return $this->successResponse('Product deleted successfully');
     }
 }
